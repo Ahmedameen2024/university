@@ -11,7 +11,7 @@ analyzer:
   errors:
     avoid_function_literals_in_foreach_calls: ignore
     avoid_print: ignore ignore ignore ignore
-    depend_on_referenced_packages: ignore ignore ignore
+    depend_on_referenced_packages: ignore ignore ignore ignore ignore
     unnecessary_const: ignore
     unused_import: ignore
     unused_local_variable: ignore ignore

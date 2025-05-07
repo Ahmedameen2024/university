@@ -49,7 +49,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '375356092519',
     projectId: 'university17-28d51',
     authDomain: 'university17-28d51.firebaseapp.com',
-    storageBucket: 'university17-28d51.firebasestorage.app',
+    storageBucket: 'university17-28d51.appspot.com', // <-- تم التعديل هنا
     measurementId: 'G-G6Z1XKTG29',
   );
 
@@ -58,7 +58,7 @@ class DefaultFirebaseOptions {
     appId: '1:375356092519:android:af38e2b81b8d5a259364c2',
     messagingSenderId: '375356092519',
     projectId: 'university17-28d51',
-    storageBucket: 'university17-28d51.firebasestorage.app',
+    storageBucket: 'university17-28d51.appspot.com', // <-- تم التعديل هنا
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -66,7 +66,7 @@ class DefaultFirebaseOptions {
     appId: '1:375356092519:ios:747ca330aca8358b9364c2',
     messagingSenderId: '375356092519',
     projectId: 'university17-28d51',
-    storageBucket: 'university17-28d51.firebasestorage.app',
+    storageBucket: 'university17-28d51.appspot.com', // <-- تم التعديل هنا
     androidClientId:
         '375356092519-3i3uab06oefsm6ufl7a7j9h7jbpr4bhr.apps.googleusercontent.com',
     iosClientId:
@@ -80,7 +80,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '375356092519',
     projectId: 'university17-28d51',
     authDomain: 'university17-28d51.firebaseapp.com',
-    storageBucket: 'university17-28d51.firebasestorage.app',
+    storageBucket: 'university17-28d51.appspot.com', // <-- تم التعديل هنا
     measurementId: 'G-GQ41BD5RYM',
   );
 }
