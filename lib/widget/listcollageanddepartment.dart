@@ -11,12 +11,14 @@ import 'package:flutter_application_10/screen/graduatespage.dart';
 class Faculty {
   final String name;
   final String imagePath;
+  final String? description; // أضف هذا السطر
   final List<Department> departments;
 
   Faculty({
     required this.name,
     required this.imagePath,
     required this.departments,
+    this.description, // أضف هذا السطر
   });
 }
 
@@ -48,6 +50,10 @@ Future<List<Faculty>> fetchFacultiesWithDepartments() async {
     final collegeData = collegeDoc.data();
     final collegeId = collegeDoc.id;
 
+    // اطبع النبذة التعريفية في الـ debug console
+    print(
+        'نبذة الكلية (${collegeData['name']}): ${collegeData['description']}');
+
     // جلب الأقسام المرتبطة بهذه الكلية
     final collegeDepartments = departmentsSnapshot.docs.where((deptDoc) {
       final deptData = deptDoc.data();
@@ -55,19 +61,19 @@ Future<List<Faculty>> fetchFacultiesWithDepartments() async {
       return deptData['collegeId'] == collegeId;
     }).map((deptDoc) {
       final deptData = deptDoc.data();
-      // يمكنك إضافة جلب الأبحاث والخريجين إذا كانت موجودة في القسم
       return Department(
         name: deptData['name'] ?? '',
         description: deptData['description'] ?? '',
-        researches: [], // أضف جلب الأبحاث إذا كانت موجودة
-        graduates: [], // أضف جلب الخريجين إذا كانت موجودة
+        researches: [],
+        graduates: [],
       );
     }).toList();
 
     faculties.add(
       Faculty(
         name: collegeData['name'] ?? '',
-        imagePath: collegeData['imageUrl'] ?? '', // أو imagePath حسب الحقل
+        imagePath: collegeData['imageUrl'] ?? '',
+        description: collegeData['description'] ?? '', // أضف هذا السطر
         departments: collegeDepartments,
       ),
     );

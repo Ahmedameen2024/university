@@ -14,14 +14,25 @@ class FacultiesPage extends StatefulWidget {
 }
 
 class _FacultiesPageState extends State<FacultiesPage> {
-  int? expandedFacultyIndex; // لتتبع الكلية المفتوحة
-  final Map<String, bool> _expandedDepartments = {}; // لتتبع القسم المفتوح
+  int? expandedFacultyIndex; // تتبع الكلية المفتوحة
+  final Map<String, bool> _expandedDepartments = {}; // تتبع القسم المفتوح
+  final Map<String, bool> _showFullDesc =
+      {}; // تتبع حالة "قراءة المزيد" لكل قسم
+  final Map<String, bool> _showFullFacultyDesc =
+      {}; // تتبع حالة "قراءة المزيد" لكل كلية
+  late Future<List<Faculty>> facultiesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    facultiesFuture = fetchFacultiesWithDepartments();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<List<Faculty>>(
-        future: fetchFacultiesWithDepartments(),
+        future: facultiesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -36,6 +47,16 @@ class _FacultiesPageState extends State<FacultiesPage> {
             itemBuilder: (context, index) {
               final faculty = faculties[index];
               final isFacultyExpanded = expandedFacultyIndex == index;
+
+              // خصائص النبذة التعريفية للكلية
+              final facultyDesc = faculty.description ?? 'لا توجد نبذة متاحة.';
+              final bool facultyNeedsReadMore = facultyDesc.length > 100;
+              final bool facultyShowAll =
+                  _showFullFacultyDesc[faculty.name] ?? false;
+              final String facultyShortDesc = facultyNeedsReadMore
+                  ? facultyDesc.substring(0, 100) + '...'
+                  : facultyDesc;
+
               return Card(
                 shape: RoundedRectangleBorder(
                   side: BorderSide(color: Colors.teal, width: 2),
@@ -82,6 +103,62 @@ class _FacultiesPageState extends State<FacultiesPage> {
                         ),
                       ),
                     ),
+                    // النبذة التعريفية للكلية (فوق الأقسام)
+                    if (isFacultyExpanded)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: Card(
+                          elevation: 0,
+                          margin: EdgeInsets.zero,
+                          color: Colors.blue.shade50.withOpacity(0.2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                                color: Colors.blue.shade200, width: 1),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  facultyShowAll
+                                      ? facultyDesc
+                                      : facultyShortDesc,
+                                  maxLines: facultyShowAll ? null : 3,
+                                  overflow: facultyShowAll
+                                      ? TextOverflow.visible
+                                      : TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                if (facultyNeedsReadMore)
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: TextButton(
+                                      child: Text(facultyShowAll
+                                          ? 'إخفاء'
+                                          : 'قراءة المزيد'),
+                                      onPressed: () {
+                                        setState(() {
+                                          _showFullFacultyDesc[faculty.name] =
+                                              !facultyShowAll;
+                                        });
+                                      },
+                                      style: TextButton.styleFrom(
+                                        padding: EdgeInsets.zero,
+                                        minimumSize: const Size(50, 30),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     // الأقسام (تظهر فقط إذا الكلية مفتوحة)
                     if (isFacultyExpanded)
                       ...faculty.departments.map((deptDoc) {
@@ -90,12 +167,16 @@ class _FacultiesPageState extends State<FacultiesPage> {
                         final desc =
                             deptDoc.description ?? 'لا توجد نبذة متاحة.';
                         final bool needsReadMore = desc.length > 100;
-                        final String shortDescription = desc;
-
+                        final bool showAll =
+                            _showFullDesc[deptDoc.name] ?? false;
+                        final String shortDescription = needsReadMore
+                            ? desc.substring(0, 100) + '...'
+                            : desc;
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Divider(height: 24),
+                            // عنوان القسم وزر الفتح
                             InkWell(
                               onTap: () {
                                 setState(() {
@@ -122,6 +203,7 @@ class _FacultiesPageState extends State<FacultiesPage> {
                                 ],
                               ),
                             ),
+                            // تفاصيل القسم
                             if (isExpanded)
                               Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -129,49 +211,60 @@ class _FacultiesPageState extends State<FacultiesPage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 250),
-                                      curve: Curves.easeInOut,
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
+                                    // النبذة التعريفية في Card مستقل
+                                    Card(
+                                      elevation: 0,
+                                      margin: EdgeInsets.zero,
+                                      color:
+                                          Colors.blue.shade50.withOpacity(0.2),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        side: BorderSide(
                                             color: Colors.blue.shade200,
                                             width: 1),
-                                        borderRadius: BorderRadius.circular(8),
-                                        color: Colors.blue.shade50,
                                       ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            desc,
-                                            maxLines: 5,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.black87,
-                                            ),
-                                          ),
-                                          if (needsReadMore)
-                                            Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: TextButton(
-                                                child: Text(isExpanded
-                                                    ? 'إخفاء'
-                                                    : 'قراءة المزيد'),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _expandedDepartments[deptDoc
-                                                        .name] = !isExpanded;
-                                                  });
-                                                },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              showAll ? desc : shortDescription,
+                                              maxLines: showAll ? null : 3,
+                                              overflow: showAll
+                                                  ? TextOverflow.visible
+                                                  : TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                color: Colors.black87,
                                               ),
                                             ),
-                                        ],
+                                            if (needsReadMore)
+                                              Align(
+                                                alignment: Alignment.centerLeft,
+                                                child: TextButton(
+                                                  child: Text(showAll
+                                                      ? 'إخفاء'
+                                                      : 'قراءة المزيد'),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _showFullDesc[deptDoc
+                                                          .name] = !showAll;
+                                                    });
+                                                  },
+                                                  style: TextButton.styleFrom(
+                                                    padding: EdgeInsets.zero,
+                                                    minimumSize:
+                                                        const Size(50, 30),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
                                       ),
                                     ),
+                                    // الأزرار دائماً تظهر أسفل النبذة
                                     Padding(
                                       padding: const EdgeInsets.only(top: 8),
                                       child: Row(

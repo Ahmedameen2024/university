@@ -66,8 +66,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: Colors.yellow[800]!,
                 title: 'Sin In',
                 onPressed: () {
-                  // Navigator.push(
-                  //     context, MaterialPageRoute(builder: (context) => Home()));
+                  Navigator.push(
+                      context, MaterialPageRoute(builder: (context) => Home()));
                 }),
             iconSize: 20,
           )
